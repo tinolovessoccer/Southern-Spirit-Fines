@@ -5,6 +5,7 @@ import Header from './components/Header'
 import RegisterView from './components/RegisterView'
 import PlayersView from './components/PlayersView'
 import WeeksView from './components/WeeksView'
+import VideosView from './components/VideosView'
 import IssueFineModal from './components/IssueFineModal'
 import EditFineModal from './components/EditFineModal'
 import FinesListModal from './components/FinesListModal'
@@ -182,6 +183,7 @@ export default function App() {
       )}
       {view === 'players' && <PlayersView fines={fines} players={players} />}
       {view === 'weeks' && <WeeksView fines={fines} setView={setView} />}
+      {view === 'videos' && <VideosView isAdmin={isAdmin} />}
 
       {showLogin && <Login onClose={() => setShowLogin(false)} />}
       {showIssue && isAdmin && (
