@@ -79,13 +79,9 @@ export default function Header({
         {[['register','📋 Register'],['players','👤 By Player'],['weeks','📅 By Week']].map(([v,l]) => (
           <button key={v} className={`btn tab ${view === v ? 'tab-active' : 'tab-inactive'}`} onClick={() => setView(v)}>{l}</button>
         ))}
-        {isAdmin && (
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
-            <button className="btn tab tab-inactive tab-sm" onClick={onFinesList}>⚙️ Fines List</button>
-            <button className="btn tab tab-inactive tab-sm" onClick={onRoster}>✏️ Roster</button>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
+  <button className="btn tab tab-inactive tab-sm" onClick={onFinesList}>⚙️ Fines List</button>
+  {isAdmin && (
+    <button className="btn tab tab-inactive tab-sm" onClick={onRoster}>✏️ Roster</button>
+  )}
+</div>
