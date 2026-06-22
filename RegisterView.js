@@ -7,15 +7,39 @@ export default function RegisterView({ fines, players, loading, isAdmin, onToggl
   const [filterPlayer, setFilterPlayer] = useState('All')
   const [filterWeek, setFilterWeek] = useState('All')
   const [filterStatus, setFilterStatus] = useState('All')
+  const [sortKey, setSortKey] = useState('week')
+  const [sortDir, setSortDir] = useState('asc')
+
+  function handleSort(key) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    else { setSortKey(key); setSortDir('asc') }
+  }
+
+  function sortIndicator(key) {
+    if (sortKey !== key) return ''
+    return sortDir === 'asc' ? ' ▲' : ' ▼'
+  }
 
   const filtered = fines
     .filter(f => filterPlayer === 'All' || f.player === filterPlayer)
     .filter(f => filterWeek === 'All' || f.week === filterWeek)
     .filter(f => filterStatus === 'All' || f.status === filterStatus)
     .sort((a, b) => {
-      const wa = parseInt(a.week?.split(' ')[1] || 0)
-      const wb = parseInt(b.week?.split(' ')[1] || 0)
-      return wa !== wb ? wa - wb : a.player.localeCompare(b.player)
+      let cmp = 0
+      if (sortKey === 'week') {
+        const wa = parseInt((a.week || '').match(/\d+/)?.[0] || 0)
+        const wb = parseInt((b.week || '').match(/\d+/)?.[0] || 0)
+        cmp = wa - wb
+      } else if (sortKey === 'player') {
+        cmp = a.player.localeCompare(b.player)
+      } else if (sortKey === 'amount') {
+        cmp = Number(a.amount) - Number(b.amount)
+      } else if (sortKey === 'status') {
+        cmp = a.status.localeCompare(b.status)
+      } else if (sortKey === 'type') {
+        cmp = a.type.localeCompare(b.type)
+      }
+      return sortDir === 'asc' ? cmp : -cmp
     })
 
   return (
@@ -49,9 +73,13 @@ export default function RegisterView({ fines, players, loading, isAdmin, onToggl
           <table>
             <thead>
               <tr>
-                {['Week','Player','Offence','Note','Amount','Status',...(isAdmin ? [''] : [])].map(h => (
-                  <th key={h}>{h}</th>
-                ))}
+                <th onClick={() => handleSort('week')}>Week{sortIndicator('week')}</th>
+                <th onClick={() => handleSort('player')}>Player{sortIndicator('player')}</th>
+                <th onClick={() => handleSort('type')}>Offence{sortIndicator('type')}</th>
+                <th>Note</th>
+                <th onClick={() => handleSort('amount')}>Amount{sortIndicator('amount')}</th>
+                <th onClick={() => handleSort('status')}>Status{sortIndicator('status')}</th>
+                {isAdmin && <th></th>}
               </tr>
             </thead>
             <tbody>
