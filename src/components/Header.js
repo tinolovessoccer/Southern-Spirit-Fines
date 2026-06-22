@@ -13,7 +13,7 @@ function TreasuryCircle({ collected, total }) {
     <div className="treasury">
       <div style={{ position: 'relative', width: 88, height: 88 }}>
         <svg width="88" height="88" viewBox="0 0 88 88" style={{ transform: 'rotate(-90deg)' }}>
-          <circle cx="44" cy="44" r={r} fill="none" stroke="#1e3a5f" strokeWidth="7" />
+          <circle cx="44" cy="44" r={r} fill="none" stroke="var(--line)" strokeWidth="7" />
           <circle cx="44" cy="44" r={r} fill="none" stroke={color} strokeWidth="7"
             strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
             style={{ transition: 'stroke-dasharray 0.8s ease, stroke 0.4s ease' }} />
@@ -33,7 +33,8 @@ function TreasuryCircle({ collected, total }) {
 
 export default function Header({
   isAdmin, session, totalAll, totalPaid, totalUnpaid, finesCount,
-  view, setView, onIssue, onPayment, onLogin, onLogout, onFinesList, onRoster
+  view, setView, onIssue, onPayment, onLogin, onLogout, onFinesList, onRoster,
+  isLight, onToggleTheme
 }) {
   return (
     <div className="header">
@@ -46,6 +47,9 @@ export default function Header({
           </div>
         </div>
         <div className="header-actions">
+          <button className="btn btn-theme" onClick={onToggleTheme} title={isLight ? 'Switch to dark mode' : 'Switch to light mode'}>
+            {isLight ? '🌙' : '☀️'}
+          </button>
           <button className="btn btn-sky" onClick={onPayment}>💳 Pay</button>
           {isAdmin ? (
             <>
