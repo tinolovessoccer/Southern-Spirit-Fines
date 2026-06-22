@@ -23,6 +23,7 @@ export default function App() {
   const [paymentInfo, setPaymentInfo] = useState({ accountName: 'Southern Spirit Fines', bsb: '670-864', account: '36012242', reference: 'Your name + Fines (e.g. John Smith Fines)' })
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState('register')
+  const [isLight, setIsLight] = useState(false)
 
   const [showIssue, setShowIssue] = useState(false)
   const [showPayment, setShowPayment] = useState(false)
@@ -133,7 +134,7 @@ export default function App() {
   const totalUnpaid = fines.filter(f => f.status === 'Unpaid').reduce((s, f) => s + Number(f.amount), 0)
 
   return (
-    <div className="app">
+    <div className={`app ${isLight ? 'light-mode' : ''}`}>
       <Header
         isAdmin={isAdmin}
         session={session}
@@ -149,6 +150,8 @@ export default function App() {
         onLogout={handleLogout}
         onFinesList={() => setShowFinesList(true)}
         onRoster={() => setShowRoster(true)}
+        isLight={isLight}
+        onToggleTheme={() => setIsLight(l => !l)}
       />
 
       {view === 'register' && (
@@ -185,4 +188,3 @@ export default function App() {
     </div>
   )
 }
-
