@@ -20,10 +20,11 @@ export default function App() {
   const [fines, setFines] = useState([])
   const [fineMenu, setFineMenu] = useState(DEFAULT_FINE_MENU)
   const [players, setPlayers] = useState(PLAYERS)
+  const [paymentInfo, setPaymentInfo] = useState({ accountName: 'Southern Spirit Fines', bsb: '670-864', account: '36012242', reference: 'Your name + Fines (e.g. John Smith Fines)' })
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState('register')
+  const [isLight, setIsLight] = useState(false)
 
-  // Modal states
   const [showIssue, setShowIssue] = useState(false)
   const [showPayment, setShowPayment] = useState(false)
   const [showFinesList, setShowFinesList] = useState(false)
@@ -32,12 +33,10 @@ export default function App() {
   const [showLogin, setShowLogin] = useState(false)
 
   useEffect(() => {
-    // Check existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       if (session) checkAdmin(session.user)
     })
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
       if (session) checkAdmin(session.user)
@@ -47,33 +46,23 @@ export default function App() {
   }, [])
 
   async function checkAdmin(user) {
-    const { data } = await supabase
-      .from('admins')
-      .select('user_id')
-      .eq('user_id', user.id)
-      .single()
+    const { data } = await supabase.from('admins').select('user_id').eq('user_id', user.id).single()
     setIsAdmin(!!data)
   }
 
   useEffect(() => {
     loadFines()
     loadSettings()
-
-    // Real-time subscription for fines
     const channel = supabase
       .channel('fines-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'fines' }, () => loadFines())
       .subscribe()
-
     return () => supabase.removeChannel(channel)
   }, [])
 
   async function loadFines() {
     setLoading(true)
-    const { data, error } = await supabase
-      .from('fines')
-      .select('*')
-      .order('created_at', { ascending: false })
+    const { data, error } = await supabase.from('fines').select('*').order('created_at', { ascending: false })
     if (!error && data) setFines(data)
     setLoading(false)
   }
@@ -83,8 +72,10 @@ export default function App() {
     if (data) {
       const menu = data.find(s => s.key === 'fine_menu')
       const roster = data.find(s => s.key === 'roster')
+      const payment = data.find(s => s.key === 'payment_info')
       if (menu) setFineMenu(JSON.parse(menu.value))
       if (roster) setPlayers(JSON.parse(roster.value))
+      if (payment) setPaymentInfo(JSON.parse(payment.value))
     }
   }
 
@@ -94,12 +85,7 @@ export default function App() {
 
   async function handleIssueFines(newFines) {
     const rows = newFines.map(f => ({
-      player: f.player,
-      week: f.week,
-      type: f.type,
-      amount: f.amount,
-      note: f.note || '',
-      status: 'Unpaid',
+      player: f.player, week: f.week, type: f.type, amount: f.amount, note: f.note || '', status: 'Unpaid',
     }))
     await supabase.from('fines').insert(rows)
     setShowIssue(false)
@@ -119,12 +105,8 @@ export default function App() {
 
   async function saveEditFine(updated) {
     await supabase.from('fines').update({
-      player: updated.player,
-      week: updated.week,
-      type: updated.type,
-      amount: parseFloat(updated.amount),
-      note: updated.note,
-      status: updated.status,
+      player: updated.player, week: updated.week, type: updated.type,
+      amount: parseFloat(updated.amount), note: updated.note, status: updated.status,
     }).eq('id', updated.id)
     setFines(prev => prev.map(f => f.id === updated.id ? { ...f, ...updated, amount: parseFloat(updated.amount) } : f))
     setEditingFine(null)
@@ -152,7 +134,7 @@ export default function App() {
   const totalUnpaid = fines.filter(f => f.status === 'Unpaid').reduce((s, f) => s + Number(f.amount), 0)
 
   return (
-    <div className="app">
+    <div className={`app ${isLight ? 'light-mode' : ''}`}>
       <Header
         isAdmin={isAdmin}
         session={session}
@@ -168,6 +150,8 @@ export default function App() {
         onLogout={handleLogout}
         onFinesList={() => setShowFinesList(true)}
         onRoster={() => setShowRoster(true)}
+        isLight={isLight}
+        onToggleTheme={() => setIsLight(l => !l)}
       />
 
       {view === 'register' && (
@@ -187,35 +171,19 @@ export default function App() {
 
       {showLogin && <Login onClose={() => setShowLogin(false)} />}
       {showIssue && isAdmin && (
-        <IssueFineModal
-          players={players}
-          fineMenu={fineMenu}
-          onConfirm={handleIssueFines}
-          onClose={() => setShowIssue(false)}
-        />
+        <IssueFineModal players={players} fineMenu={fineMenu} onConfirm={handleIssueFines} onClose={() => setShowIssue(false)} />
       )}
       {editingFine && isAdmin && (
-        <EditFineModal
-          fine={editingFine}
-          players={players}
-          onSave={saveEditFine}
-          onClose={() => setEditingFine(null)}
-        />
+        <EditFineModal fine={editingFine} players={players} onSave={saveEditFine} onClose={() => setEditingFine(null)} />
       )}
-      {showFinesList && isAdmin && (
-        <FinesListModal
-          fineMenu={fineMenu}
-          onSave={saveFineMenu}
-          onClose={() => setShowFinesList(false)}
-        />
+      {showFinesList && (
+        <FinesListModal fineMenu={fineMenu} isAdmin={isAdmin} onSave={saveFineMenu} onClose={() => setShowFinesList(false)} />
       )}
-      {showPayment && <PaymentModal onClose={() => setShowPayment(false)} />}
+      {showPayment && (
+        <PaymentModal onClose={() => setShowPayment(false)} isAdmin={isAdmin} paymentInfo={paymentInfo} onSaved={setPaymentInfo} />
+      )}
       {showRoster && isAdmin && (
-        <RosterModal
-          players={players}
-          onSave={saveRoster}
-          onClose={() => setShowRoster(false)}
-        />
+        <RosterModal players={players} onSave={saveRoster} onClose={() => setShowRoster(false)} />
       )}
     </div>
   )
