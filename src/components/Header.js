@@ -76,12 +76,17 @@ export default function Header({
       </div>
 
       <div className="tabs">
-        {[['register','📋 Register'],['players','👤 By Player'],['weeks','📅 By Week']].map(([v,l]) => (
+        {[['register','📋 Register'],['players','👤 By Player'],['weeks','📅 By Week'],['videos','🎬 Videos']].map(([v,l]) => (
           <button key={v} className={`btn tab ${view === v ? 'tab-active' : 'tab-inactive'}`} onClick={() => setView(v)}>{l}</button>
         ))}
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
-  <button className="btn tab tab-inactive tab-sm" onClick={onFinesList}>⚙️ Fines List</button>
-  {isAdmin && (
-    <button className="btn tab tab-inactive tab-sm" onClick={onRoster}>✏️ Roster</button>
-  )}
-</div>
+          <button className="btn tab tab-inactive tab-sm" onClick={onFinesList}>⚙️ Fines List</button>
+          {isAdmin && (
+            <button className="btn tab tab-inactive tab-sm" onClick={onRoster}>✏️ Roster</button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
