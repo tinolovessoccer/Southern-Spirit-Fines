@@ -6,7 +6,7 @@ export const PLAYERS = [
   "Deklan Harvey","Tom Hughes","Matthew Wright","Tom Howorth","Aaron Priemus",
 ]
 
-export const MATCH_WEEKS = Array.from({ length: 22 }, (_, i) => `Week ${i + 1}`)
+export const MATCH_WEEKS = Array.from({ length: 99 }, (_, i) => `Week ${i + 1}`)
 
 export const DEFAULT_FINE_MENU = [
   { id:"f1",  label:"Late to Training",      amount:5,  emoji:"⏰" },
